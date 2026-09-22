@@ -29,7 +29,8 @@ const navItems = document.querySelectorAll(".nav-item");
 const views = {
   categorias: document.getElementById("view-categorias"),
   productos: document.getElementById("view-productos"),
-  contenido: document.getElementById("view-contenido")
+  contenido: document.getElementById("view-contenido"),
+  estadisticas: document.getElementById("view-estadisticas")
 };
 
 navItems.forEach(item => {
@@ -38,6 +39,7 @@ navItems.forEach(item => {
     item.classList.add("active");
     Object.values(views).forEach(v => v.style.display = "none");
     views[item.dataset.view].style.display = "block";
+    if (item.dataset.view === "estadisticas") cargarEstadisticas();
   });
 });
 
@@ -387,3 +389,73 @@ formContenido.addEventListener("submit", async (e) => {
     btn.disabled = false; btn.textContent = "Guardar cambios";
   }
 });
+
+// ==================================================
+// ESTADÍSTICAS
+// ==================================================
+async function cargarEstadisticas() {
+  try {
+    const resumenSnap = await getDoc(doc(db, "estadisticas", "resumen"));
+    const total = resumenSnap.exists() ? (resumenSnap.data().visitasTotal || 0) : 0;
+    document.getElementById("stat-total").textContent = total;
+
+    const diasSnap = await getDocs(collection(db, "estadisticas_dias"));
+    const dias = [];
+    diasSnap.forEach(d => dias.push({ fecha: d.id, visitas: d.data().visitas || 0 }));
+    dias.sort((a, b) => a.fecha.localeCompare(b.fecha));
+
+    const hoy = new Date().toISOString().slice(0, 10);
+    const hoyVisitas = dias.find(d => d.fecha === hoy)?.visitas || 0;
+    document.getElementById("stat-hoy").textContent = hoyVisitas;
+
+    const corte = new Date();
+    corte.setDate(corte.getDate() - 6);
+    const corteStr = corte.toISOString().slice(0, 10);
+    const semanaVisitas = dias.filter(d => d.fecha >= corteStr).reduce((s, d) => s + d.visitas, 0);
+    document.getElementById("stat-semana").textContent = semanaVisitas;
+
+    renderGraficoVisitas(dias.slice(-14));
+
+    const vistasCatSnap = await getDocs(collection(db, "categoria_vistas"));
+    const vistasPorCat = {};
+    vistasCatSnap.forEach(d => { vistasPorCat[d.id] = d.data().vistas || 0; });
+    renderTopCategorias(vistasPorCat);
+
+  } catch (err) {
+    console.error("No se pudieron cargar las estadísticas:", err);
+  }
+}
+
+function renderGraficoVisitas(dias) {
+  const cont = document.getElementById("grafico-visitas");
+  if (dias.length === 0) {
+    cont.innerHTML = `<div class="empty-state" style="width:100%">Todavía no hay visitas registradas.</div>`;
+    return;
+  }
+  const max = Math.max(...dias.map(d => d.visitas), 1);
+  cont.innerHTML = dias.map(d => {
+    const h = Math.max(4, Math.round((d.visitas / max) * 100));
+    const label = d.fecha.slice(5).replace("-", "/");
+    return `<div class="bar-col"><div class="bar" style="height:${h}%" title="${d.visitas} visitas el ${d.fecha}"></div><span>${label}</span></div>`;
+  }).join("");
+}
+
+function renderTopCategorias(vistasPorCat) {
+  const cont = document.getElementById("top-categorias");
+  if (categoriasCache.length === 0) {
+    cont.innerHTML = `<div class="empty-state">Aún no has creado categorías.</div>`;
+    return;
+  }
+  const ordenado = [...categoriasCache]
+    .map(c => ({ ...c, vistas: vistasPorCat[c.id] || 0 }))
+    .sort((a, b) => b.vistas - a.vistas);
+
+  cont.innerHTML = ordenado.map(c => `
+    <div class="list-row">
+      <img src="${c.imagen || 'assets/logo.jpg'}" alt="">
+      <div class="info">
+        <div class="name">${c.nombre}</div>
+        <div class="meta">${c.vistas} visita${c.vistas === 1 ? "" : "s"}</div>
+      </div>
+    </div>`).join("");
+}
