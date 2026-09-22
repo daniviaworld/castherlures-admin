@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Panel de control — Castherlures</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="assets/logo.jpg">
+<link rel="stylesheet" href="css/admin.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css">
+</head>
+<body>
+
+<div class="shell">
+  <aside class="sidebar">
+    <div class="brand">
+      <img src="assets/logo.jpg" alt="">
+      <span>Castherlures</span>
+    </div>
+    <div class="nav-item active" data-view="categorias">Categorías</div>
+    <div class="nav-item" data-view="productos">Artículos</div>
+    <div class="nav-item" data-view="contenido">Contenido</div>
+    <div class="nav-item" data-view="estadisticas">Estadísticas</div>
+    <div class="spacer"></div>
+    <div class="logout" id="logout">Cerrar sesión</div>
+  </aside>
+
+  <main class="main">
+    <!-- Vista Categorías -->
+    <section id="view-categorias">
+      <div class="view-head">
+        <div>
+          <h2>Categorías</h2>
+          <p>Las secciones que verán tus clientes en la portada</p>
+        </div>
+        <button class="btn" id="btn-nueva-categoria">+ Nueva categoría</button>
+      </div>
+      <div class="list" id="lista-categorias"></div>
+    </section>
+
+    <!-- Vista Productos -->
+    <section id="view-productos" style="display:none">
+      <div class="view-head">
+        <div>
+          <h2>Artículos</h2>
+          <p>Todos los productos, organizados por categoría</p>
+        </div>
+        <button class="btn" id="btn-nuevo-producto">+ Nuevo artículo</button>
+      </div>
+
+      <div class="field" style="max-width:280px; margin-bottom:18px">
+        <label for="filtro-categoria">Filtrar por categoría</label>
+        <select id="filtro-categoria">
+          <option value="">Todas</option>
+        </select>
+      </div>
+
+      <div class="list" id="lista-productos"></div>
+    </section>
+
+    <!-- Vista Contenido -->
+    <section id="view-contenido" style="display:none">
+      <div class="view-head">
+        <div>
+          <h2>Contenido de la portada</h2>
+          <p>Los textos que ve el cliente al entrar en la web</p>
+        </div>
+      </div>
+
+      <form id="form-contenido" style="max-width:520px">
+        <div class="row2">
+          <div class="field">
+            <label for="c-hero1">Titular — línea 1</label>
+            <input type="text" id="c-hero1" placeholder="Lo que lleves en la caja">
+          </div>
+          <div class="field">
+            <label for="c-hero2">Titular — línea 2 (resaltada en azul)</label>
+            <input type="text" id="c-hero2" placeholder="decide el día de pesca.">
+          </div>
+        </div>
+        <div class="field">
+          <label for="c-desc">Descripción bajo el titular</label>
+          <textarea id="c-desc" placeholder="Sedales, señuelos, cañas..."></textarea>
+        </div>
+        <div class="field">
+          <label for="c-boton">Texto del botón</label>
+          <input type="text" id="c-boton" placeholder="Ver catálogo">
+        </div>
+        <div class="row2">
+          <div class="field">
+            <label for="c-cat-titulo">Título de la sección de categorías</label>
+            <input type="text" id="c-cat-titulo" placeholder="Categorías">
+          </div>
+          <div class="field">
+            <label for="c-cat-sub">Subtítulo de esa sección</label>
+            <input type="text" id="c-cat-sub" placeholder="Elige una familia...">
+          </div>
+        </div>
+        <div class="row2">
+          <div class="field">
+            <label for="c-footer-izq">Pie de página — izquierda</label>
+            <input type="text" id="c-footer-izq" placeholder="Castherlures — Artículos de pesca">
+          </div>
+          <div class="field">
+            <label for="c-footer-der">Pie de página — derecha</label>
+            <input type="text" id="c-footer-der" placeholder="Hecho con cariño por pescadores">
+          </div>
+        </div>
+
+        <h3 style="margin:22px 0 14px; font-size:0.95rem; color:var(--silver)">Datos de contacto (aparecen como botones en la web; deja vacío lo que no uses)</h3>
+        <div class="row2">
+          <div class="field">
+            <label for="c-tel">Teléfono</label>
+            <input type="text" id="c-tel" placeholder="688781990">
+          </div>
+          <div class="field">
+            <label for="c-whatsapp">WhatsApp (con prefijo país)</label>
+            <input type="text" id="c-whatsapp" placeholder="34688781990">
+          </div>
+        </div>
+        <div class="row2">
+          <div class="field">
+            <label for="c-email">Correo</label>
+            <input type="email" id="c-email" placeholder="info@castherlures.com">
+          </div>
+          <div class="field">
+            <label for="c-insta">Instagram (usuario, sin @)</label>
+            <input type="text" id="c-insta" placeholder="castherlures">
+          </div>
+        </div>
+
+        <button type="submit" class="btn" id="c-guardar">Guardar cambios</button>
+        <span class="error-msg" id="c-guardado" style="color:var(--blue); text-align:left; margin-top:10px; display:block"></span>
+      </form>
+    </section>
+
+    <!-- Vista Estadísticas -->
+    <section id="view-estadisticas" style="display:none">
+      <div class="view-head">
+        <div>
+          <h2>Estadísticas</h2>
+          <p>Visitas a la web y qué categorías interesan más</p>
+        </div>
+      </div>
+
+      <div class="stat-cards">
+        <div class="stat-card">
+          <span class="stat-num" id="stat-total">–</span>
+          <span class="stat-label">Visitas totales</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-num" id="stat-hoy">–</span>
+          <span class="stat-label">Hoy</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-num" id="stat-semana">–</span>
+          <span class="stat-label">Últimos 7 días</span>
+        </div>
+      </div>
+
+      <h3 style="font-size:0.95rem; color:var(--silver); margin:28px 0 12px">Visitas por día (últimos 14 días)</h3>
+      <div class="bar-chart" id="grafico-visitas"></div>
+
+      <h3 style="font-size:0.95rem; color:var(--silver); margin:32px 0 12px">Categorías más vistas</h3>
+      <div class="list" id="top-categorias"></div>
+    </section>
+  </main>
+</div>
+
+<!-- Modal Categoría -->
+<div class="overlay" id="modal-categoria" style="display:none">
+  <form class="modal" id="form-categoria">
+    <h3 id="modal-categoria-title">Nueva categoría</h3>
+    <input type="hidden" id="cat-id">
+
+    <img class="img-preview" id="cat-img-preview" src="assets/logo.jpg" alt="">
+    <div class="field">
+      <label for="cat-imagen">Foto de portada</label>
+      <input type="file" id="cat-imagen" accept="image/*">
+    </div>
+    <div class="field">
+      <label for="cat-nombre">Nombre (ej. Sedales)</label>
+      <input type="text" id="cat-nombre" required>
+    </div>
+    <div class="field">
+      <label for="cat-orden">Orden (número, menor = primero)</label>
+      <input type="number" id="cat-orden" value="0">
+    </div>
+    <div class="checkbox-row">
+      <input type="checkbox" id="cat-activo" checked>
+      <label for="cat-activo">Visible en la web</label>
+    </div>
+
+    <div class="modal-actions">
+      <button type="button" class="btn secondary" id="cat-cancel">Cancelar</button>
+      <button type="submit" class="btn" id="cat-guardar">Guardar</button>
+    </div>
+  </form>
+</div>
+
+<!-- Modal Producto -->
+<div class="overlay" id="modal-producto" style="display:none">
+  <form class="modal" id="form-producto">
+    <h3 id="modal-producto-title">Nuevo artículo</h3>
+    <input type="hidden" id="prod-id">
+
+    <img class="img-preview" id="prod-img-preview" src="assets/logo.jpg" alt="">
+    <div class="field">
+      <label for="prod-imagen">Foto</label>
+      <input type="file" id="prod-imagen" accept="image/*">
+    </div>
+    <div class="field">
+      <label for="prod-categoria">Categoría</label>
+      <select id="prod-categoria" required></select>
+    </div>
+    <div class="field">
+      <label for="prod-nombre">Nombre</label>
+      <input type="text" id="prod-nombre" required>
+    </div>
+    <div class="row2">
+      <div class="field">
+        <label for="prod-tipo">Tipo / variante (ej. Trenzado 0.20mm)</label>
+        <input type="text" id="prod-tipo">
+      </div>
+      <div class="field">
+        <label for="prod-precio">Precio (€)</label>
+        <input type="number" step="0.01" id="prod-precio" required>
+      </div>
+    </div>
+    <div class="field">
+      <label for="prod-descripcion">Descripción</label>
+      <textarea id="prod-descripcion"></textarea>
+    </div>
+    <div class="field">
+      <label for="prod-orden">Orden (número, menor = primero)</label>
+      <input type="number" id="prod-orden" value="0">
+    </div>
+    <div class="checkbox-row">
+      <input type="checkbox" id="prod-activo" checked>
+      <label for="prod-activo">Visible en la web</label>
+    </div>
+
+    <div class="modal-actions">
+      <button type="button" class="btn secondary" id="prod-cancel">Cancelar</button>
+      <button type="submit" class="btn" id="prod-guardar">Guardar</button>
+    </div>
+  </form>
+</div>
+
+<!-- Modal Recorte de imagen -->
+<div class="overlay" id="modal-crop" style="display:none; z-index:80">
+  <div class="modal" style="max-width:560px">
+    <h3>Ajusta el encuadre</h3>
+    <p style="font-size:0.82rem; color:var(--silver-dim); margin:-10px 0 14px">Mueve y haz zoom para elegir qué parte de la foto se ve. Se guardará tal cual la encuadres aquí.</p>
+    <div style="max-height:60vh; overflow:hidden; background:#000; border-radius:var(--radius)">
+      <img id="crop-image" style="max-width:100%; display:block">
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="btn secondary" id="crop-cancel">Cancelar</button>
+      <button type="button" class="btn" id="crop-confirm">Usar este encuadre</button>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="js/dashboard.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
+</body>
+</html>
