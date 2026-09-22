@@ -401,6 +401,7 @@ async function cargarContenido() {
     document.getElementById("c-whatsapp").value = c.contactoWhatsapp || "";
     document.getElementById("c-email").value = c.contactoEmail || "";
     document.getElementById("c-insta").value = c.contactoInstagram || "";
+    document.getElementById("c-tiktok").value = c.contactoTiktok || "";
   } catch (err) {
     console.error("No se pudo cargar el contenido:", err);
   }
@@ -428,6 +429,7 @@ formContenido.addEventListener("submit", async (e) => {
       contactoWhatsapp: document.getElementById("c-whatsapp").value.trim(),
       contactoEmail: document.getElementById("c-email").value.trim(),
       contactoInstagram: document.getElementById("c-insta").value.trim(),
+      contactoTiktok: document.getElementById("c-tiktok").value.trim(),
       actualizado: serverTimestamp()
     }, { merge: true });
     aviso.textContent = "Guardado. Ya se ve en la web pública.";
