@@ -244,6 +244,10 @@ function abrirModalProducto(p = null) {
   document.getElementById("prod-nombre").value = p ? p.nombre : "";
   document.getElementById("prod-tipo").value = p ? (p.tipo || "") : "";
   document.getElementById("prod-precio").value = p ? p.precio : "";
+  document.getElementById("prod-gramos").value = p && p.gramos != null ? p.gramos : "";
+  document.getElementById("prod-caida").value = p ? (p.caida || "") : "";
+  document.getElementById("prod-glow").checked = p ? !!p.glow : false;
+  document.getElementById("prod-sonajero").checked = p ? !!p.sonajero : false;
   document.getElementById("prod-descripcion").value = p ? (p.descripcion || "") : "";
   document.getElementById("prod-orden").value = p ? p.orden ?? 0 : 0;
   document.getElementById("prod-activo").checked = p ? p.activo !== false : true;
@@ -263,6 +267,10 @@ formProd.addEventListener("submit", async (e) => {
       nombre: document.getElementById("prod-nombre").value.trim(),
       tipo: document.getElementById("prod-tipo").value.trim(),
       precio: Number(document.getElementById("prod-precio").value) || 0,
+      gramos: document.getElementById("prod-gramos").value ? Number(document.getElementById("prod-gramos").value) : null,
+      caida: document.getElementById("prod-caida").value.trim(),
+      glow: document.getElementById("prod-glow").checked,
+      sonajero: document.getElementById("prod-sonajero").checked,
       descripcion: document.getElementById("prod-descripcion").value.trim(),
       orden: Number(document.getElementById("prod-orden").value) || 0,
       activo: document.getElementById("prod-activo").checked,
@@ -300,12 +308,17 @@ function renderProductos() {
 
   list.innerHTML = items.map(p => {
     const cat = categoriasCache.find(c => c.id === p.categoriaId);
+    const specs = [];
+    if (p.gramos != null) specs.push(`${p.gramos} g`);
+    if (p.caida) specs.push(`Caída ${p.caida}`);
+    if (p.glow) specs.push("Glow");
+    if (p.sonajero) specs.push("Sonajero");
     return `
     <div class="list-row">
       <img src="${p.imagen || 'assets/logo.jpg'}" alt="">
       <div class="info">
         <div class="name">${p.nombre} ${p.activo === false ? '<span style="color:var(--silver-dim)">(oculto)</span>' : ''}</div>
-        <div class="meta">${cat ? cat.nombre : "Sin categoría"} ${p.tipo ? "· " + p.tipo : ""} · ${money(p.precio)}</div>
+        <div class="meta">${cat ? cat.nombre : "Sin categoría"} ${p.tipo ? "· " + p.tipo : ""} · ${money(p.precio)}${specs.length ? " · " + specs.join(" · ") : ""}</div>
       </div>
       <div class="actions">
         <button class="icon-btn" data-edit="${p.id}">Editar</button>
