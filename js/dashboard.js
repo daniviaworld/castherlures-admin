@@ -296,6 +296,10 @@ async function cargarContenido() {
     document.getElementById("c-cat-sub").value = c.catSubtitulo || "";
     document.getElementById("c-footer-izq").value = c.footerIzquierda || "";
     document.getElementById("c-footer-der").value = c.footerDerecha || "";
+    document.getElementById("c-tel").value = c.contactoTelefono || "";
+    document.getElementById("c-whatsapp").value = c.contactoWhatsapp || "";
+    document.getElementById("c-email").value = c.contactoEmail || "";
+    document.getElementById("c-insta").value = c.contactoInstagram || "";
   } catch (err) {
     console.error("No se pudo cargar el contenido:", err);
   }
@@ -319,6 +323,10 @@ formContenido.addEventListener("submit", async (e) => {
       catSubtitulo: document.getElementById("c-cat-sub").value.trim(),
       footerIzquierda: document.getElementById("c-footer-izq").value.trim(),
       footerDerecha: document.getElementById("c-footer-der").value.trim(),
+      contactoTelefono: document.getElementById("c-tel").value.trim(),
+      contactoWhatsapp: document.getElementById("c-whatsapp").value.trim(),
+      contactoEmail: document.getElementById("c-email").value.trim(),
+      contactoInstagram: document.getElementById("c-insta").value.trim(),
       actualizado: serverTimestamp()
     }, { merge: true });
     aviso.textContent = "Guardado. Ya se ve en la web pública.";
