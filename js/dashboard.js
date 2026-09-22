@@ -101,8 +101,8 @@ document.getElementById("crop-confirm").addEventListener("click", () => {
       catImagenFile = namedBlob;
       document.getElementById("cat-img-preview").src = previewUrl;
     } else {
-      prodImagenFile = namedBlob;
-      document.getElementById("prod-img-preview").src = previewUrl;
+      prodImagenesNuevas.push({ blob: namedBlob, preview: previewUrl });
+      renderGaleriaProd();
     }
     document.getElementById("modal-crop").style.display = "none";
     cropper.destroy();
@@ -218,7 +218,8 @@ let productosCache = [];
 
 const modalProd = document.getElementById("modal-producto");
 const formProd = document.getElementById("form-producto");
-let prodImagenFile = null;
+let prodImagenesExistentes = []; // URLs ya subidas (al editar)
+let prodImagenesNuevas = [];     // { blob, preview } pendientes de subir
 
 document.getElementById("btn-nuevo-producto").addEventListener("click", () => abrirModalProducto());
 document.getElementById("prod-cancel").addEventListener("click", () => modalProd.style.display = "none");
@@ -229,6 +230,32 @@ document.getElementById("prod-imagen").addEventListener("change", (e) => {
 });
 document.getElementById("filtro-categoria").addEventListener("change", renderProductos);
 
+function renderGaleriaProd() {
+  const cont = document.getElementById("prod-galeria");
+  const existentes = prodImagenesExistentes.map((url, i) => `
+    <div class="foto-chip">
+      <img src="${url}" alt="">
+      <button type="button" class="foto-chip-x" data-tipo="existente" data-idx="${i}">×</button>
+    </div>`).join("");
+  const nuevas = prodImagenesNuevas.map((item, i) => `
+    <div class="foto-chip">
+      <img src="${item.preview}" alt="">
+      <button type="button" class="foto-chip-x" data-tipo="nueva" data-idx="${i}">×</button>
+    </div>`).join("");
+
+  cont.innerHTML = (existentes + nuevas) ||
+    `<span style="font-size:0.78rem; color:var(--silver-dim)">Aún no has añadido ninguna foto.</span>`;
+
+  cont.querySelectorAll(".foto-chip-x").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const idx = Number(btn.dataset.idx);
+      if (btn.dataset.tipo === "existente") prodImagenesExistentes.splice(idx, 1);
+      else prodImagenesNuevas.splice(idx, 1);
+      renderGaleriaProd();
+    });
+  });
+}
+
 function actualizarSelectCategorias() {
   const selects = [document.getElementById("prod-categoria"), document.getElementById("filtro-categoria")];
   const opcionesBase = categoriasCache.map(c => `<option value="${c.id}">${c.nombre}</option>`).join("");
@@ -237,7 +264,10 @@ function actualizarSelectCategorias() {
 }
 
 function abrirModalProducto(p = null) {
-  prodImagenFile = null;
+  prodImagenesExistentes = p ? [...(p.imagenes && p.imagenes.length ? p.imagenes : (p.imagen ? [p.imagen] : []))] : [];
+  prodImagenesNuevas = [];
+  renderGaleriaProd();
+
   document.getElementById("modal-producto-title").textContent = p ? "Editar artículo" : "Nuevo artículo";
   document.getElementById("prod-id").value = p ? p.id : "";
   document.getElementById("prod-categoria").value = p ? p.categoriaId : (categoriasCache[0]?.id || "");
@@ -251,7 +281,6 @@ function abrirModalProducto(p = null) {
   document.getElementById("prod-descripcion").value = p ? (p.descripcion || "") : "";
   document.getElementById("prod-orden").value = p ? p.orden ?? 0 : 0;
   document.getElementById("prod-activo").checked = p ? p.activo !== false : true;
-  document.getElementById("prod-img-preview").src = p?.imagen || "assets/logo.jpg";
   modalProd.style.display = "flex";
 }
 
@@ -277,9 +306,16 @@ formProd.addEventListener("submit", async (e) => {
       actualizado: serverTimestamp()
     };
 
-    if (prodImagenFile) {
-      data.imagen = await subirImagen(prodImagenFile, "productos");
+    if (prodImagenesNuevas.length > 0) {
+      const nuevasUrls = [];
+      for (const item of prodImagenesNuevas) {
+        nuevasUrls.push(await subirImagen(item.blob, "productos"));
+      }
+      prodImagenesExistentes = [...prodImagenesExistentes, ...nuevasUrls];
+      prodImagenesNuevas = [];
     }
+    data.imagenes = prodImagenesExistentes;
+    data.imagen = prodImagenesExistentes[0] || "";
 
     if (id) {
       await updateDoc(doc(db, "productos", id), data);
@@ -315,7 +351,7 @@ function renderProductos() {
     if (p.sonajero) specs.push("Sonajero");
     return `
     <div class="list-row">
-      <img src="${p.imagen || 'assets/logo.jpg'}" alt="">
+      <img src="${(p.imagenes && p.imagenes[0]) || p.imagen || 'assets/logo.jpg'}" alt="">
       <div class="info">
         <div class="name">${p.nombre} ${p.activo === false ? '<span style="color:var(--silver-dim)">(oculto)</span>' : ''}</div>
         <div class="meta">${cat ? cat.nombre : "Sin categoría"} ${p.tipo ? "· " + p.tipo : ""} · ${money(p.precio)}${specs.length ? " · " + specs.join(" · ") : ""}</div>
