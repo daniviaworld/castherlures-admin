@@ -60,6 +60,54 @@ function money(n) {
   return Number.isNaN(num) ? n : num.toLocaleString("es-ES", { style: "currency", currency: "EUR" });
 }
 
+// ---------- Recorte de imagen (categorías: cuadrado · productos: 4:3) ----------
+let cropper = null;
+let cropTargetType = null; // "cat" | "prod"
+
+function abrirCrop(file, type) {
+  cropTargetType = type;
+  const img = document.getElementById("crop-image");
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    img.src = ev.target.result;
+    document.getElementById("modal-crop").style.display = "flex";
+    if (cropper) cropper.destroy();
+    cropper = new Cropper(img, {
+      aspectRatio: type === "cat" ? 1 : 4 / 3,
+      viewMode: 1,
+      autoCropArea: 1,
+      background: false
+    });
+  };
+  reader.readAsDataURL(file);
+}
+
+document.getElementById("crop-cancel").addEventListener("click", () => {
+  document.getElementById("modal-crop").style.display = "none";
+  if (cropper) { cropper.destroy(); cropper = null; }
+});
+
+document.getElementById("crop-confirm").addEventListener("click", () => {
+  if (!cropper) return;
+  const size = cropTargetType === "cat" ? { width: 900, height: 900 } : { width: 900, height: 675 };
+  const canvas = cropper.getCroppedCanvas(size);
+  canvas.toBlob((blob) => {
+    if (!blob) return;
+    const namedBlob = new File([blob], "foto.jpg", { type: "image/jpeg" });
+    const previewUrl = canvas.toDataURL("image/jpeg", 0.9);
+    if (cropTargetType === "cat") {
+      catImagenFile = namedBlob;
+      document.getElementById("cat-img-preview").src = previewUrl;
+    } else {
+      prodImagenFile = namedBlob;
+      document.getElementById("prod-img-preview").src = previewUrl;
+    }
+    document.getElementById("modal-crop").style.display = "none";
+    cropper.destroy();
+    cropper = null;
+  }, "image/jpeg", 0.9);
+});
+
 // ==================================================
 // CATEGORÍAS
 // ==================================================
@@ -73,8 +121,9 @@ let catImagenFile = null;
 document.getElementById("btn-nueva-categoria").addEventListener("click", () => abrirModalCategoria());
 document.getElementById("cat-cancel").addEventListener("click", () => modalCat.style.display = "none");
 document.getElementById("cat-imagen").addEventListener("change", (e) => {
-  catImagenFile = e.target.files[0] || null;
-  if (catImagenFile) document.getElementById("cat-img-preview").src = URL.createObjectURL(catImagenFile);
+  const f = e.target.files[0];
+  if (f) abrirCrop(f, "cat");
+  e.target.value = "";
 });
 
 function abrirModalCategoria(cat = null) {
@@ -172,8 +221,9 @@ let prodImagenFile = null;
 document.getElementById("btn-nuevo-producto").addEventListener("click", () => abrirModalProducto());
 document.getElementById("prod-cancel").addEventListener("click", () => modalProd.style.display = "none");
 document.getElementById("prod-imagen").addEventListener("change", (e) => {
-  prodImagenFile = e.target.files[0] || null;
-  if (prodImagenFile) document.getElementById("prod-img-preview").src = URL.createObjectURL(prodImagenFile);
+  const f = e.target.files[0];
+  if (f) abrirCrop(f, "prod");
+  e.target.value = "";
 });
 document.getElementById("filtro-categoria").addEventListener("change", renderProductos);
 
