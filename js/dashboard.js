@@ -75,7 +75,6 @@ function abrirCrop(file, type) {
     document.getElementById("modal-crop").style.display = "flex";
     if (cropper) cropper.destroy();
     cropper = new Cropper(img, {
-      aspectRatio: type === "cat" ? 1 : 4 / 3,
       viewMode: 1,
       autoCropArea: 1,
       background: false
@@ -91,8 +90,7 @@ document.getElementById("crop-cancel").addEventListener("click", () => {
 
 document.getElementById("crop-confirm").addEventListener("click", () => {
   if (!cropper) return;
-  const size = cropTargetType === "cat" ? { width: 900, height: 900 } : { width: 900, height: 675 };
-  const canvas = cropper.getCroppedCanvas(size);
+  const canvas = cropper.getCroppedCanvas({ maxWidth: 1600, maxHeight: 1600, imageSmoothingQuality: "high" });
   canvas.toBlob((blob) => {
     if (!blob) return;
     const namedBlob = new File([blob], "foto.jpg", { type: "image/jpeg" });
